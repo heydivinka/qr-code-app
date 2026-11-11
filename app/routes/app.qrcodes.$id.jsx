@@ -189,12 +189,13 @@ export default function QRCodeForm() {
             value={formState.title || ""}
             error={errors.title}
             autocomplete="off"
-            onInput={(e) =>
+            onInput={(e) => {
+              const title = e.currentTarget.value;
               setFormState((prev) => ({
                 ...prev,
-                title: e.currentTarget.value,
-              }))
-            }
+                title,
+              }));
+            }}
           />
         </s-section>
 
@@ -270,12 +271,13 @@ export default function QRCodeForm() {
               labelAccessibilityVisibility="exclusive"
               value={formState.destination || "product"}
               error={errors.destination}
-              onChange={(e) =>
+              onChange={(e) => {
+                const destination = e.currentTarget.value;
                 setFormState((prev) => ({
                   ...prev,
-                  destination: e.currentTarget.value,
-                }))
-              }
+                  destination,
+                }));
+              }}
             >
               <s-option value="product">Link to product page</s-option>
               <s-option value="cart">
