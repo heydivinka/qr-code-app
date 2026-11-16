@@ -67,30 +67,33 @@ export function ErrorBoundary() {
         alignItems: "center",
         justifyContent: "center",
         padding: "2rem",
-        background: "#090d16",
+        backgroundColor: "#f8fafc",
+        backgroundImage: "radial-gradient(#e2e8f0 1px, transparent 1px)",
+        backgroundSize: "24px 24px",
         fontFamily:
-          "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-        color: "#ffffff",
+          "'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+        color: "#0f172a",
         textAlign: "center",
       }}
     >
       <div
         style={{
           maxWidth: "420px",
-          background: "rgba(15, 23, 42, 0.8)",
+          background: "#ffffff",
           padding: "2.5rem 2rem",
-          borderRadius: "20px",
-          border: "1px solid rgba(244, 63, 94, 0.3)",
-          boxShadow: "0 20px 40px rgba(0, 0, 0, 0.6)",
+          borderRadius: "14px",
+          border: "1px solid #e2e8f0",
+          boxShadow:
+            "0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04)",
         }}
       >
         <div
           style={{
-            width: "56px",
-            height: "56px",
+            width: "48px",
+            height: "48px",
             borderRadius: "50%",
-            background: "rgba(244, 63, 94, 0.15)",
-            color: "#f43f5e",
+            background: "#fee2e2",
+            color: "#e11d48",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -98,12 +101,13 @@ export function ErrorBoundary() {
           }}
         >
           <svg
-            width="28"
-            height="28"
+            width="24"
+            height="24"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
+            aria-hidden="true"
           >
             <circle cx="12" cy="12" r="10" />
             <line x1="15" y1="9" x2="9" y2="15" />
@@ -112,14 +116,16 @@ export function ErrorBoundary() {
         </div>
         <h1
           style={{
-            fontSize: "1.4rem",
-            fontWeight: 800,
+            fontSize: "1.25rem",
+            fontWeight: 700,
             marginBottom: "0.5rem",
+            fontFamily: "'Space Grotesk', -apple-system, sans-serif",
+            color: "#0f172a",
           }}
         >
           QR Code Destination Not Found
         </h1>
-        <p style={{ color: "#94a3b8", fontSize: "0.95rem", lineHeight: 1.6 }}>
+        <p style={{ color: "#64748b", fontSize: "0.9375rem", lineHeight: 1.5 }}>
           This QR code could not be loaded or its destination product has been removed.
         </p>
       </div>

@@ -21,10 +21,13 @@ function resolveAppUrl() {
 }
 
 const shopify = shopifyApp({
-  apiKey: process.env.SHOPIFY_API_KEY,
+  apiKey: process.env.SHOPIFY_API_KEY || "aca28ff044716591efad3bdcbd47ee68",
   apiSecretKey: process.env.SHOPIFY_API_SECRET || "",
   apiVersion: ApiVersion.July26,
-  scopes: process.env.SCOPES?.split(","),
+  scopes: (
+    process.env.SCOPES ||
+    "write_metaobject_definitions,write_metaobjects,write_products"
+  ).split(","),
   appUrl: resolveAppUrl(),
   authPathPrefix: "/auth",
   sessionStorage: new PrismaSessionStorage(prisma),

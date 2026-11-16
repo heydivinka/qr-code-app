@@ -21,12 +21,21 @@ export const loader = async ({ request, params }) => {
     }
   }
 
-  invariant(shop, "Missing shop parameter");
+  if (!shop) {
+    throw new Response("Missing shop parameter", { status: 400 });
+  }
 
-  const { admin } = await unauthenticated.admin(shop);
+  let qrCode = null;
+  try {
+    const { admin } = await unauthenticated.admin(shop);
+    qrCode = await getQRCode(params.id, admin.graphql, shop, url.origin);
+  } catch (error) {
+    console.error("Failed to load QR code destination:", error);
+  }
 
-  const qrCode = await getQRCode(params.id, admin.graphql, shop, url.origin);
-  invariant(qrCode, "Could not find QR code destination");
+  if (!qrCode) {
+    throw new Response("Could not find QR code destination", { status: 404 });
+  }
 
   return {
     title: qrCode.title,
@@ -52,24 +61,24 @@ export default function QRCode() {
         alignItems: "center",
         justifyContent: "center",
         padding: "2.5rem 1.25rem",
-        background:
-          "radial-gradient(circle at 50% -10%, rgba(124, 58, 237, 0.3) 0%, transparent 60%), radial-gradient(circle at 90% 80%, rgba(236, 72, 153, 0.15) 0%, transparent 50%), #080b11",
+        backgroundColor: "#f8fafc",
+        backgroundImage:
+          "radial-gradient(#e2e8f0 1px, transparent 1px)",
+        backgroundSize: "24px 24px",
         fontFamily:
-          "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-        color: "#f8fafc",
+          "'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+        color: "#0f172a",
       }}
     >
       <div
         style={{
           width: "100%",
           maxWidth: "420px",
-          background: "rgba(15, 23, 42, 0.82)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-          borderRadius: "24px",
-          border: "1px solid rgba(168, 85, 247, 0.3)",
+          background: "#ffffff",
+          borderRadius: "14px",
+          border: "1px solid #e2e8f0",
           boxShadow:
-            "0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 35px rgba(124, 58, 237, 0.25)",
+            "0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04)",
           overflow: "hidden",
           display: "flex",
           flexDirection: "column",
@@ -78,9 +87,9 @@ export default function QRCode() {
         {/* Card Header */}
         <div
           style={{
-            padding: "1.75rem 1.75rem 1.25rem",
-            borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
-            background: "rgba(30, 41, 59, 0.4)",
+            padding: "1.5rem 1.75rem 1.25rem",
+            borderBottom: "1px solid #f1f5f9",
+            background: "#ffffff",
           }}
         >
           <div
@@ -95,34 +104,25 @@ export default function QRCode() {
               style={{
                 display: "inline-flex",
                 alignItems: "center",
-                gap: "0.45rem",
+                gap: "0.4rem",
                 fontSize: "0.75rem",
                 fontWeight: 700,
                 textTransform: "uppercase",
                 letterSpacing: "0.06em",
-                color: "#c084fc",
-                background: "rgba(124, 58, 237, 0.2)",
-                border: "1px solid rgba(168, 85, 247, 0.35)",
-                padding: "0.3rem 0.75rem",
+                color: "#2563eb",
+                background: "#eff6ff",
+                border: "1px solid #bfdbfe",
+                padding: "0.25rem 0.65rem",
                 borderRadius: "9999px",
               }}
             >
-              <span
-                style={{
-                  width: "6px",
-                  height: "6px",
-                  borderRadius: "50%",
-                  background: "#a855f7",
-                  boxShadow: "0 0 8px #a855f7",
-                }}
-              />
-              Verified QR Pass
+              Shopify QR Pass
             </div>
             <span
               style={{
-                fontSize: "0.75rem",
+                fontSize: "0.8125rem",
                 fontWeight: 500,
-                color: "#94a3b8",
+                color: "#64748b",
               }}
             >
               {shop}
@@ -131,12 +131,13 @@ export default function QRCode() {
 
           <h1
             style={{
-              fontSize: "1.55rem",
-              fontWeight: 800,
+              fontSize: "1.45rem",
+              fontWeight: 700,
               lineHeight: 1.25,
-              color: "#ffffff",
+              color: "#0f172a",
               margin: 0,
               letterSpacing: "-0.02em",
+              fontFamily: "'Space Grotesk', -apple-system, sans-serif",
             }}
           >
             {title}
@@ -145,15 +146,15 @@ export default function QRCode() {
           {productTitle && (
             <p
               style={{
-                margin: "0.45rem 0 0",
-                fontSize: "0.9rem",
-                color: "#94a3b8",
+                margin: "0.35rem 0 0",
+                fontSize: "0.875rem",
+                color: "#475569",
               }}
             >
-              Target: <strong style={{ color: "#f1f5f9" }}>{productTitle}</strong>{" "}
+              Linked to <strong style={{ color: "#0f172a" }}>{productTitle}</strong>{" "}
               •{" "}
-              <span style={{ color: "#22d3ee" }}>
-                {destination === "checkout" ? "Direct Checkout" : "Product Page"}
+              <span style={{ color: "#2563eb", fontWeight: 600 }}>
+                {destination === "checkout" ? "Direct Checkout" : "Product Details"}
               </span>
             </p>
           )}
@@ -163,7 +164,7 @@ export default function QRCode() {
         <div
           style={{
             padding: "2rem",
-            background: "rgba(8, 11, 17, 0.6)",
+            background: "#f8fafc",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
@@ -174,10 +175,9 @@ export default function QRCode() {
             style={{
               background: "#ffffff",
               padding: "1rem",
-              borderRadius: "18px",
-              boxShadow:
-                "0 10px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(124, 58, 237, 0.2)",
-              border: "2px solid rgba(255, 255, 255, 0.15)",
+              borderRadius: "12px",
+              boxShadow: "0 1px 3px rgba(15, 23, 42, 0.08)",
+              border: "1px solid #e2e8f0",
               display: "inline-block",
             }}
           >
@@ -194,22 +194,22 @@ export default function QRCode() {
           </div>
           <p
             style={{
-              fontSize: "0.825rem",
-              color: "#94a3b8",
-              margin: "1.15rem 0 0",
+              fontSize: "0.8125rem",
+              color: "#64748b",
+              margin: "1rem 0 0",
               textAlign: "center",
             }}
           >
-            Scan with your mobile camera or test the link below
+            Scan with your mobile camera or test the destination below
           </p>
         </div>
 
-        {/* Actions */}
+        {/* Action Buttons */}
         <div
           style={{
-            padding: "1.35rem 1.75rem",
-            background: "rgba(30, 41, 59, 0.4)",
-            borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+            padding: "1.25rem 1.75rem",
+            background: "#ffffff",
+            borderTop: "1px solid #f1f5f9",
             display: "flex",
             flexDirection: "column",
             gap: "0.75rem",
@@ -222,15 +222,16 @@ export default function QRCode() {
               alignItems: "center",
               justifyContent: "center",
               gap: "0.5rem",
-              padding: "0.9rem 1.25rem",
-              background: "linear-gradient(135deg, #7c3aed 0%, #ec4899 100%)",
+              minHeight: "44px",
+              padding: "0 1.25rem",
+              background: "#2563eb",
               color: "#ffffff",
               textDecoration: "none",
-              borderRadius: "12px",
-              fontWeight: 700,
-              fontSize: "0.95rem",
-              boxShadow: "0 4px 20px rgba(236, 72, 153, 0.45)",
-              transition: "transform 0.15s ease",
+              borderRadius: "8px",
+              fontWeight: 600,
+              fontSize: "0.9375rem",
+              boxShadow: "0 1px 3px rgba(37, 99, 235, 0.2)",
+              transition: "background-color 150ms ease",
             }}
           >
             <span>Test Destination Link</span>
@@ -241,6 +242,7 @@ export default function QRCode() {
               fill="none"
               stroke="currentColor"
               strokeWidth="2.5"
+              aria-hidden="true"
             >
               <line x1="5" y1="12" x2="19" y2="12" />
               <polyline points="12 5 19 12 12 19" />
@@ -255,14 +257,16 @@ export default function QRCode() {
               alignItems: "center",
               justifyContent: "center",
               gap: "0.5rem",
-              padding: "0.8rem 1.25rem",
-              background: "rgba(255, 255, 255, 0.06)",
-              color: "#e2e8f0",
+              minHeight: "44px",
+              padding: "0 1.25rem",
+              background: "#ffffff",
+              color: "#334155",
               textDecoration: "none",
-              borderRadius: "12px",
+              borderRadius: "8px",
               fontWeight: 600,
               fontSize: "0.875rem",
-              border: "1px solid rgba(255, 255, 255, 0.14)",
+              border: "1px solid #cbd5e1",
+              transition: "background-color 150ms ease, border-color 150ms ease",
             }}
           >
             <svg
@@ -272,6 +276,7 @@ export default function QRCode() {
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
+              aria-hidden="true"
             >
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
               <polyline points="7 10 12 15 17 10" />
@@ -295,30 +300,30 @@ export function ErrorBoundary() {
         alignItems: "center",
         justifyContent: "center",
         padding: "2rem",
-        background: "#080b11",
+        background: "#f8fafc",
         fontFamily:
-          "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-        color: "#ffffff",
+          "'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+        color: "#0f172a",
         textAlign: "center",
       }}
     >
       <div
         style={{
           maxWidth: "400px",
-          background: "rgba(15, 23, 42, 0.8)",
+          background: "#ffffff",
           padding: "2.5rem 2rem",
-          borderRadius: "20px",
-          border: "1px solid rgba(244, 63, 94, 0.3)",
-          boxShadow: "0 20px 40px rgba(0, 0, 0, 0.6)",
+          borderRadius: "14px",
+          border: "1px solid #e2e8f0",
+          boxShadow: "0 4px 6px -1px rgba(15, 23, 42, 0.05)",
         }}
       >
         <div
           style={{
-            width: "56px",
-            height: "56px",
+            width: "48px",
+            height: "48px",
             borderRadius: "50%",
-            background: "rgba(244, 63, 94, 0.15)",
-            color: "#f43f5e",
+            background: "#fee2e2",
+            color: "#e11d48",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -326,12 +331,13 @@ export function ErrorBoundary() {
           }}
         >
           <svg
-            width="28"
-            height="28"
+            width="24"
+            height="24"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
+            aria-hidden="true"
           >
             <circle cx="12" cy="12" r="10" />
             <line x1="15" y1="9" x2="9" y2="15" />
@@ -340,14 +346,15 @@ export function ErrorBoundary() {
         </div>
         <h1
           style={{
-            fontSize: "1.35rem",
-            fontWeight: 800,
+            fontSize: "1.25rem",
+            fontWeight: 700,
             marginBottom: "0.5rem",
+            fontFamily: "'Space Grotesk', -apple-system, sans-serif",
           }}
         >
           QR Code Not Found
         </h1>
-        <p style={{ color: "#94a3b8", fontSize: "0.95rem", lineHeight: 1.5 }}>
+        <p style={{ color: "#64748b", fontSize: "0.9375rem", lineHeight: 1.5 }}>
           This QR code does not exist or may have been deleted from Shopify Admin.
         </p>
       </div>
