@@ -72,16 +72,18 @@ export const action = async ({ request }) => {
   const scopes =
     process.env.SCOPES ||
     "write_metaobject_definitions,write_metaobjects,write_products";
-  const appUrl =
+  const appUrl = (
     process.env.SHOPIFY_APP_URL ||
     (process.env.VERCEL_PROJECT_PRODUCTION_URL
       ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
       : process.env.VERCEL_URL
         ? `https://${process.env.VERCEL_URL}`
-        : "https://qr-code-app-flax.vercel.app");
+        : "https://qr-code-app-flax.vercel.app")
+  ).replace(/\/+$/, "");
 
-  // Rute OAuth Authorize resmi langsung ke layar "Install app" toko merchant
-  const authorizeUrl = `https://${shop}/admin/oauth/authorize?client_id=${apiKey}&scope=${scopes}&redirect_uri=${appUrl}/api/auth`;
+  // Bersihkan redirectUri dari double slash dan pastikan di-encode sesuai spesifikasi OAuth Shopify
+  const redirectUri = `${appUrl}/api/auth`;
+  const authorizeUrl = `https://${shop}/admin/oauth/authorize?client_id=${apiKey}&scope=${scopes}&redirect_uri=${encodeURIComponent(redirectUri)}`;
 
   return redirect(authorizeUrl);
 };
