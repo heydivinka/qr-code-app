@@ -5,29 +5,14 @@ import {
   shopifyApp,
 } from "@shopify/shopify-app-react-router/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
-import prisma from "./db.server.js";
-
-function resolveAppUrl() {
-  if (process.env.SHOPIFY_APP_URL) {
-    return process.env.SHOPIFY_APP_URL.replace(/\/+$/, "");
-  }
-  return "https://qr-code-app-flax.vercel.app";
-}
+import prisma from "./db.server";
 
 const shopify = shopifyApp({
-  apiKey: process.env.SHOPIFY_API_KEY || "aca28ff044716591efad3bdcbd47ee68",
-  apiSecretKey:
-    process.env.SHOPIFY_API_SECRET ||
-    Buffer.from(
-      "c2hwc3NfNWU3MWNkYzY4ZjZhMjJkOWY3NTQ4YmRiOTJmN2MxOTg=",
-      "base64",
-    ).toString("utf-8"),
+  apiKey: process.env.SHOPIFY_API_KEY,
+  apiSecretKey: process.env.SHOPIFY_API_SECRET || "",
   apiVersion: ApiVersion.July26,
-  scopes: (
-    process.env.SCOPES ||
-    "write_metaobject_definitions,write_metaobjects,write_products"
-  ).split(","),
-  appUrl: resolveAppUrl(),
+  scopes: process.env.SCOPES?.split(","),
+  appUrl: process.env.SHOPIFY_APP_URL || "",
   authPathPrefix: "/auth",
   sessionStorage: new PrismaSessionStorage(prisma),
   distribution: AppDistribution.AppStore,

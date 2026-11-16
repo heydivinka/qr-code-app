@@ -2,7 +2,7 @@
 
 client_id = "68f651214fe847d81ef4af0370ef541a"
 name = "qr-code-refresh"
-application_url = "https://qr-code-app-flax.vercel.app"
+application_url = "https://example.com"
 embedded = true
 
 [access_scopes]
@@ -10,15 +10,11 @@ embedded = true
 scopes = "write_metaobject_definitions,write_metaobjects,write_products"
 
 [auth]
-redirect_urls = [
-  "https://qr-code-app-flax.vercel.app/auth",
-  "https://qr-code-app-flax.vercel.app/api/auth",
-  "https://qr-code-app-flax.vercel.app/auth/callback",
-  "https://qr-code-app-flax.vercel.app/auth/shopify/callback"
-]
+redirect_urls = [ "https://example.com/api/auth" ]
 
 [webhooks]
 api_version = "2027-01"
 
 [build]
+include_config_on_deploy = true
 automatically_update_urls_on_dev = true
