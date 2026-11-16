@@ -20,3 +20,4 @@ CREATE TABLE IF NOT EXISTS "Session" (
 
     CONSTRAINT "Session_pkey" PRIMARY KEY ("id")
 );
+
