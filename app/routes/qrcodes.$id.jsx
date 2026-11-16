@@ -44,3 +44,23 @@ export default function QRCode() {
   );
 }
 
+export function ErrorBoundary() {
+  return (
+    <main
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "100vh",
+        fontFamily: "Inter, system-ui, sans-serif",
+        padding: "2rem",
+        textAlign: "center",
+      }}
+    >
+      <h1>QR Code Not Found</h1>
+      <p>This QR code does not exist or may have been deleted.</p>
+    </main>
+  );
+}
+
