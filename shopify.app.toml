@@ -2,7 +2,7 @@
 
 client_id = "fa08795f27f72cbd714e7bb5c345f502"
 name = "qr-code-app"
-application_url = "https://example.com"
+application_url = "https://qr-code-app-flax.vercel.app"
 embedded = true
 
 [access_scopes]
@@ -99,8 +99,12 @@ api_version = "2026-10"
   query_filter = "product.status:'ACTIVE'"
 
 [auth]
-redirect_urls = [ "https://example.com/api/auth" ]
+redirect_urls = [
+  "https://qr-code-app-flax.vercel.app/auth",
+  "https://qr-code-app-flax.vercel.app/api/auth",
+  "https://qr-code-app-flax.vercel.app/auth/callback",
+  "https://qr-code-app-flax.vercel.app/auth/shopify/callback"
+]
 
 [build]
-include_config_on_deploy = true
 automatically_update_urls_on_dev = true
