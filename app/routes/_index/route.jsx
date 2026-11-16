@@ -1,8 +1,8 @@
+/* eslint-disable no-undef */
 import { useState } from "react";
 import { Form, redirect, useActionData, useLoaderData } from "react-router";
 import qrcode from "qrcode";
 import { login } from "../../shopify.server";
-import { loginErrorMessage } from "./error.server";
 import "./landing.css";
 
 export const loader = async ({ request }) => {
@@ -47,9 +47,43 @@ export const loader = async ({ request }) => {
 };
 
 export const action = async ({ request }) => {
-  const errors = loginErrorMessage(await login(request));
+  const formData = await request.formData();
+  let shop = formData.get("shop");
+  if (!shop || typeof shop !== "string") {
+    return { errors: { shop: "Domain toko Shopify wajib diisi." } };
+  }
 
-  return { errors };
+  shop = shop.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/$/, "");
+  if (!shop.includes(".")) {
+    shop = `${shop}.myshopify.com`;
+  }
+
+  const shopRegex = /^[a-zA-Z0-9][a-zA-Z0-9-]*\.myshopify\.com$/;
+  if (!shopRegex.test(shop)) {
+    return {
+      errors: {
+        shop: "Format domain tidak valid. Contoh: nama-toko.myshopify.com",
+      },
+    };
+  }
+
+  const apiKey =
+    process.env.SHOPIFY_API_KEY || "aca28ff044716591efad3bdcbd47ee68";
+  const scopes =
+    process.env.SCOPES ||
+    "write_metaobject_definitions,write_metaobjects,write_products";
+  const appUrl =
+    process.env.SHOPIFY_APP_URL ||
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : "https://qr-code-app-flax.vercel.app");
+
+  // Rute OAuth Authorize resmi langsung ke layar "Install app" toko merchant
+  const authorizeUrl = `https://${shop}/admin/oauth/authorize?client_id=${apiKey}&scope=${scopes}&redirect_uri=${appUrl}/api/auth`;
+
+  return redirect(authorizeUrl);
 };
 
 export default function App() {
