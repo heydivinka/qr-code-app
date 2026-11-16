@@ -2,7 +2,7 @@
 
 client_id = "aca28ff044716591efad3bdcbd47ee68"
 name = "qr-code-app"
-application_url = "https://example.com"
+application_url = "https://qr-code-app-flax.vercel.app"
 embedded = true
 
 [access_scopes]
@@ -38,11 +38,22 @@ name = "Scans"
 type = "number_integer"
 
 [auth]
-redirect_urls = [ "https://example.com/api/auth" ]
+redirect_urls = [
+  "https://qr-code-app-flax.vercel.app/api/auth",
+  "https://qr-code-app-flax.vercel.app/auth/callback",
+  "https://qr-code-app-flax.vercel.app/auth/shopify/callback"
+]
 
 [webhooks]
 api_version = "2027-01"
 
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/app/uninstalled"
+  topics = [ "app/uninstalled" ]
+
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/app/scopes_update"
+  topics = [ "app/scopes_update" ]
+
 [build]
-include_config_on_deploy = true
 automatically_update_urls_on_dev = true
