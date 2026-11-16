@@ -2,7 +2,7 @@ import { useLoaderData } from "react-router";
 import invariant from "tiny-invariant";
 
 import { unauthenticated } from "../shopify.server";
-import { getQRCodeImage } from "../models/QRCode.server";
+import { getQRCode } from "../models/QRCode.server";
 
 export const loader = async ({ request, params }) => {
   invariant(params.id, "Could not find QR code destination");
@@ -13,31 +13,12 @@ export const loader = async ({ request, params }) => {
 
   const { admin } = await unauthenticated.admin(shop);
 
-  const response = await admin.graphql(
-    `#graphql
-      query GetPublicQRCode($handle: MetaobjectHandleInput!) {
-        metaobjectByHandle(handle: $handle) {
-          id
-          title: field(key: "title") {
-            value
-          }
-        }
-      }
-    `,
-    {
-      variables: {
-        handle: { type: "$app:qrcode", handle: params.id },
-      },
-    },
-  );
-
-  const { data } = await response.json();
-  const metaobject = data?.metaobjectByHandle;
-  invariant(metaobject, "Could not find QR code destination");
+  const qrCode = await getQRCode(params.id, admin.graphql, shop);
+  invariant(qrCode, "Could not find QR code destination");
 
   return {
-    title: metaobject.title?.value || "",
-    image: await getQRCodeImage(params.id, shop),
+    title: qrCode.title,
+    image: qrCode.image,
   };
 };
 

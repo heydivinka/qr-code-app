@@ -3,7 +3,7 @@ import invariant from "tiny-invariant";
 
 import { unauthenticated } from "../shopify.server";
 import {
-  getDestinationUrl,
+  getQRCode,
   incrementQRCodeScans,
 } from "../models/QRCode.server";
 
@@ -16,55 +16,11 @@ export const loader = async ({ request, params }) => {
 
   const { admin } = await unauthenticated.admin(shop);
 
-  const response = await admin.graphql(
-    `#graphql
-      query GetQRCodeScan($handle: MetaobjectHandleInput!) {
-        metaobjectByHandle(handle: $handle) {
-          id
-          product: field(key: "product") {
-            reference {
-              ... on Product {
-                handle
-              }
-            }
-          }
-          productVariant: field(key: "product_variant") {
-            reference {
-              ... on ProductVariant {
-                legacyResourceId
-              }
-            }
-          }
-          destination: field(key: "destination") {
-            jsonValue
-          }
-          scans: field(key: "scans") {
-            jsonValue
-          }
-        }
-      }
-    `,
-    {
-      variables: {
-        handle: { type: "$app:qrcode", handle: params.id },
-      },
-    },
-  );
+  const qrCode = await getQRCode(params.id, admin.graphql, shop);
+  invariant(qrCode, "Could not find QR code destination");
 
-  const { data } = await response.json();
-  const metaobject = data?.metaobjectByHandle;
-  invariant(metaobject, "Could not find QR code destination");
+  await incrementQRCodeScans(qrCode.id, qrCode.scans, admin.graphql);
 
-  const currentScans = metaobject.scans?.jsonValue ?? 0;
-  await incrementQRCodeScans(metaobject.id, currentScans, admin.graphql);
-
-  const qrCode = {
-    destination: metaobject.destination?.jsonValue,
-    productHandle: metaobject.product?.reference?.handle,
-    productVariantLegacyId:
-      metaobject.productVariant?.reference?.legacyResourceId,
-  };
-
-  return redirect(getDestinationUrl(qrCode, shop));
+  return redirect(qrCode.destinationUrl);
 };
 
