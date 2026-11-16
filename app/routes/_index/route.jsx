@@ -441,7 +441,7 @@ export default function App() {
                 </tr>
                 <tr>
                   <td><strong>Checkout Deep-Linking</strong></td>
-                  <td>Direct variant permalink (`/cart/{id}:1`)</td>
+                  <td>Direct variant permalink (<code>/cart/variant_id:1</code>)</td>
                   <td>Standard storefront URL only</td>
                 </tr>
                 <tr>
