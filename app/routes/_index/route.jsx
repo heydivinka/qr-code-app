@@ -47,45 +47,15 @@ export const loader = async ({ request }) => {
 };
 
 export const action = async ({ request }) => {
-  const formData = await request.formData();
-  let shop = formData.get("shop");
-  if (!shop || typeof shop !== "string") {
-    return { errors: { shop: "Domain toko Shopify wajib diisi." } };
-  }
-
-  shop = shop.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/$/, "");
-  if (!shop.includes(".")) {
-    shop = `${shop}.myshopify.com`;
-  }
-
-  const shopRegex = /^[a-zA-Z0-9][a-zA-Z0-9-]*\.myshopify\.com$/;
-  if (!shopRegex.test(shop)) {
+  const result = await login(request);
+  if (result?.shop) {
     return {
       errors: {
-        shop: "Format domain tidak valid. Contoh: nama-toko.myshopify.com",
+        shop: "Domain toko tidak valid atau wajib diisi. Contoh: toko-kamu.myshopify.com",
       },
     };
   }
-
-  const apiKey =
-    process.env.SHOPIFY_API_KEY || "aca28ff044716591efad3bdcbd47ee68";
-  const scopes =
-    process.env.SCOPES ||
-    "write_metaobject_definitions,write_metaobjects,write_products";
-  const appUrl = (
-    process.env.SHOPIFY_APP_URL ||
-    (process.env.VERCEL_PROJECT_PRODUCTION_URL
-      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-      : process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}`
-        : "https://qr-code-app-flax.vercel.app")
-  ).replace(/\/+$/, "");
-
-  // Bersihkan redirectUri dari double slash dan pastikan di-encode sesuai spesifikasi OAuth Shopify
-  const redirectUri = `${appUrl}/api/auth`;
-  const authorizeUrl = `https://${shop}/admin/oauth/authorize?client_id=${apiKey}&scope=${scopes}&redirect_uri=${encodeURIComponent(redirectUri)}`;
-
-  return redirect(authorizeUrl);
+  return { errors: {} };
 };
 
 export default function App() {
