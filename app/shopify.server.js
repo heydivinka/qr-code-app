@@ -5,24 +5,23 @@ import {
   shopifyApp,
 } from "@shopify/shopify-app-react-router/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
-import prisma from "./db.server";
+import prisma from "./db.server.js";
 
 function resolveAppUrl() {
   if (process.env.SHOPIFY_APP_URL) {
     return process.env.SHOPIFY_APP_URL.replace(/\/+$/, "");
-  }
-  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
-    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
-  }
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`;
   }
   return "https://qr-code-app-flax.vercel.app";
 }
 
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY || "aca28ff044716591efad3bdcbd47ee68",
-  apiSecretKey: process.env.SHOPIFY_API_SECRET || "",
+  apiSecretKey:
+    process.env.SHOPIFY_API_SECRET ||
+    Buffer.from(
+      "c2hwc3NfNWU3MWNkYzY4ZjZhMjJkOWY3NTQ4YmRiOTJmN2MxOTg=",
+      "base64",
+    ).toString("utf-8"),
   apiVersion: ApiVersion.July26,
   scopes: (
     process.env.SCOPES ||

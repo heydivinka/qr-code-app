@@ -1,4 +1,5 @@
 import { redirect, Form, useActionData, useLoaderData } from "react-router";
+import { login } from "../../shopify.server.js";
 import "./landing.css";
 
 export const loader = async ({ request }) => {
@@ -8,25 +9,42 @@ export const loader = async ({ request }) => {
     return redirect(`/app?${url.searchParams.toString()}`);
   }
 
-  return { showForm: true };
+  return { showForm: Boolean(login) };
 };
 
 export const action = async ({ request }) => {
-  const formData = await request.formData();
-  const rawShop = formData.get("shop");
-  let shop = String(rawShop || "").trim().toLowerCase();
-
-  shop = shop.replace(/^https?:\/\//, "").replace(/\/.*$/, "");
-  if (!shop) {
+  const formData = await request.clone().formData();
+  let rawShop = String(formData.get("shop") || "").trim().toLowerCase();
+  rawShop = rawShop.replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+  if (!rawShop) {
     return { errors: { shop: "Please enter your store domain" } };
   }
 
-  const storeHandle = shop.replace(".myshopify.com", "");
+  const shopDomain = rawShop.includes(".")
+    ? rawShop
+    : `${rawShop}.myshopify.com`;
 
-  // Launch via official OAuth install link for this released client ID
-  return redirect(
-    `https://admin.shopify.com/store/${storeHandle}/oauth/install?client_id=aca28ff044716591efad3bdcbd47ee68`,
-  );
+  const newBody = new URLSearchParams({ shop: shopDomain });
+  const loginRequest = new Request(request.url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: newBody.toString(),
+  });
+
+  const response = await login(loginRequest);
+  if (response instanceof Response) {
+    return response;
+  }
+
+  if (response?.shop) {
+    return {
+      errors: { shop: "Please enter a valid myshopify.com store domain" },
+    };
+  }
+
+  return { errors: {} };
 };
 
 function BrandIcon() {
