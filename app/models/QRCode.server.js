@@ -1,6 +1,89 @@
 import qrcode from "qrcode";
 
-const METAOBJECT_TYPE = "$app:qrcode";
+const METAOBJECT_TYPE = "$app:qr_code";
+
+export async function ensureQRCodeDefinition(graphql) {
+  try {
+    const checkResponse = await graphql(
+      `#graphql
+        query CheckDefinition($type: String!) {
+          metaobjectDefinitionByType(type: $type) {
+            id
+          }
+        }
+      `,
+      {
+        variables: { type: METAOBJECT_TYPE },
+      },
+    );
+    const checkJson = await checkResponse.json();
+    if (checkJson.data?.metaobjectDefinitionByType?.id) {
+      return checkJson.data.metaobjectDefinitionByType.id;
+    }
+
+    const createResponse = await graphql(
+      `#graphql
+        mutation CreateDefinition($definition: MetaobjectDefinitionCreateInput!) {
+          metaobjectDefinitionCreate(definition: $definition) {
+            metaobjectDefinition {
+              id
+              type
+            }
+            userErrors {
+              field
+              message
+            }
+          }
+        }
+      `,
+      {
+        variables: {
+          definition: {
+            name: "QR Code",
+            type: METAOBJECT_TYPE,
+            description: "Stores QR code configuration and scan metrics for products",
+            access: {
+              admin: "MERCHANT_READ_WRITE",
+            },
+            fieldDefinitions: [
+              {
+                name: "Title",
+                key: "title",
+                type: "single_line_text_field",
+                required: true,
+              },
+              {
+                name: "Product",
+                key: "product",
+                type: "product_reference",
+              },
+              {
+                name: "Product Variant",
+                key: "product_variant",
+                type: "variant_reference",
+              },
+              {
+                name: "Destination",
+                key: "destination",
+                type: "single_line_text_field",
+              },
+              {
+                name: "Scans",
+                key: "scans",
+                type: "number_integer",
+              },
+            ],
+          },
+        },
+      },
+    );
+
+    const createJson = await createResponse.json();
+    return createJson.data?.metaobjectDefinitionCreate?.metaobjectDefinition?.id;
+  } catch (error) {
+    console.error("Failed to ensure QR code definition:", error);
+  }
+}
 
 const QR_CODE_FIELDS_FRAGMENT = `#graphql
   fragment QRCodeFields on Metaobject {
@@ -126,6 +209,8 @@ export async function getQRCode(handle, graphql, shop) {
 }
 
 export async function getQRCodes(graphql, shop) {
+  await ensureQRCodeDefinition(graphql);
+
   const response = await graphql(
     `#graphql
       ${QR_CODE_FIELDS_FRAGMENT}
@@ -171,6 +256,8 @@ export function getDestinationUrl(qrCode, shop) {
 }
 
 export async function saveQRCode(handle, data, graphql) {
+  await ensureQRCodeDefinition(graphql);
+
   const fields = [
     { key: "title", value: data.title },
     { key: "product", value: data.productId },

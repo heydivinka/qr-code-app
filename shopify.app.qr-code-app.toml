@@ -9,31 +9,31 @@ embedded = true
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
 scopes = "write_metaobject_definitions,write_metaobjects,write_products"
 
-[metaobjects.app.qrcode]
+[metaobjects.app.qr_code]
 name = "QR Code"
 description = "Stores QR code configuration and scan metrics for products"
 
-  [metaobjects.app.qrcode.access]
+  [metaobjects.app.qr_code.access]
   admin = "merchant_read_write"
 
-[metaobjects.app.qrcode.fields.title]
+[metaobjects.app.qr_code.fields.title]
 name = "Title"
 type = "single_line_text_field"
 required = true
 
-[metaobjects.app.qrcode.fields.product]
+[metaobjects.app.qr_code.fields.product]
 name = "Product"
 type = "product_reference"
 
-[metaobjects.app.qrcode.fields.product_variant]
+[metaobjects.app.qr_code.fields.product_variant]
 name = "Product Variant"
 type = "variant_reference"
 
-[metaobjects.app.qrcode.fields.destination]
+[metaobjects.app.qr_code.fields.destination]
 name = "Destination"
 type = "single_line_text_field"
 
-[metaobjects.app.qrcode.fields.scans]
+[metaobjects.app.qr_code.fields.scans]
 name = "Scans"
 type = "number_integer"
 
