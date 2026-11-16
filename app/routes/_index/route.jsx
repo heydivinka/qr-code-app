@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Form, redirect, useActionData, useLoaderData } from "react-router";
+import qrcode from "qrcode";
 import { login } from "../../shopify.server";
 import { loginErrorMessage } from "./error.server";
 import "./landing.css";
@@ -11,7 +12,38 @@ export const loader = async ({ request }) => {
     return redirect(`/app?${url.searchParams.toString()}`);
   }
 
-  return { showForm: Boolean(login) };
+  // Generate REAL, scannable QR codes for the interactive preview
+  const demoStore = "qr-code-dev-divinka.myshopify.com";
+  const productUrl = `https://${demoStore}/products/gift-card`;
+  const cartUrl = `https://${demoStore}/cart/44890876149838:1`;
+
+  const [productQrCode, cartQrCode] = await Promise.all([
+    qrcode.toDataURL(productUrl, {
+      width: 260,
+      margin: 2,
+      color: {
+        dark: "#0f172a",
+        light: "#ffffff",
+      },
+    }),
+    qrcode.toDataURL(cartUrl, {
+      width: 260,
+      margin: 2,
+      color: {
+        dark: "#0f172a",
+        light: "#ffffff",
+      },
+    }),
+  ]);
+
+  return {
+    showForm: Boolean(login),
+    demoStore,
+    productUrl,
+    cartUrl,
+    productQrCode,
+    cartQrCode,
+  };
 };
 
 export const action = async ({ request }) => {
@@ -21,30 +53,30 @@ export const action = async ({ request }) => {
 };
 
 export default function App() {
-  const { showForm } = useLoaderData();
+  const { showForm, demoStore, productUrl, cartUrl, productQrCode, cartQrCode } =
+    useLoaderData();
   const actionData = useActionData();
   const errors = actionData?.errors;
 
   const [activeMode, setActiveMode] = useState("cart");
-
-  const cartQrSrc =
-    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAWcAAAFnCAYAAAB6uIiNAAAAAklEQVR4AewaftIAAAyZSURBVO3B0a1kRw5EwRTRftCD9N+O9IBezIcErQU7dYEpXLD1TsRf//z9618BAFYpAQDWKQEA1ikBANYpAQDWKQEA1ikBANYpAQDWKQEA1ikBANb56KG29ZNNolva1lsm0S1t62QSnbStJybRDW3rlkl00rZumES3tK0bJtEtbeunmkQnJQDAOiUAwDolAMA6JQDAOiUAwDolAMA6JQDAOiUAwDofXTSJvlHbuqVt3TCJbmhbb2pbJ5PoTZPopG3dMolO2tZJ2zqZRLdMopO2dTKJbplE36ht/akSAGCdEgBgnRIAYJ0SAGCdEgBgnRIAYJ0SAGCdEgBgnY9e1rbeNIm2mUQnbetNk+gtbeuJSfSWSfRE2zqZRDdMIpy1rTdNojeUAADrlAAA65QAAOuUAADrlAAA65QAAOuUAADrlAAA63yErzWJ3tS2TibRySR6om3dMIlO2tY2beuWSYTvUgIArFMCAKxTAgCsUwIArFMCAKxTAgCsUwIArFMCAKxTAgCs8xGumkQnbetkEp20rTdNohva1pva1jeaRLe0rZNJdDKJ8I4SAGCdEgBgnRIAYJ0SAGCdEgBgnRIAYJ0SAGCdEgBgnY9eNomwzyQ6aVsnk+hkEj3Rtk4m0Q1t64lJdMMkuqFtPTGJbmhbJ5PoTZPov6gEAFinBABYpwQAWKcEAFinBABYpwQAWKcEAFinBABY56OL2tZP17ZOJtFJ2zqZRCdta5u29cQkOmlbJ5PoTW3rZBKdtK2TSfRE2zqZRNu0rZ+qBABYpwQAWKcEAFinBABYpwQAWKcEAFinBABYpwQAWOejhyYR3jOJbphET7StbdrWDW1rm7Z1Q9v6VpMI/18JALBOCQCwTgkAsE4JALBOCQCwTgkAsE4JALBOCQCwTgkAsM5HD7Wtk0n0jdrWySS6pW3dMIlO2tYTk+ikbb1pEt3Qtk4m0RNt62QS3dC2TibRE23rpG2dTKKTtnXLJLqhbb1pEv2pEgBgnRIAYJ0SAGCdEgBgnRIAYJ0SAGCdEgBgnRIAYJ2PLmpbN0yiJ9rWySQ6mUQnbeuJSXTStk4m0UnbOplEt0yiN7WtGybRTzeJTtrWDZPoibZ10rZ+qhIAYJ0SAGCdEgBgnRIAYJ0SAGCdEgBgnRIAYJ0SAGCdj142iU7a1pva1i1t62QSfaO2tc0kOmlbJ5PoiUl00rZOJtENbeuJSXQyiW5oW7dMopO2dTKJnmhbN7St35lEJyUAwDolAMA...=";
-
-  const productQrSrc =
-    "data:image/png;base64,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";
-
   const isCart = activeMode === "cart";
+
+  const currentQr = isCart ? cartQrCode : productQrCode;
+  const currentUrl = isCart ? cartUrl : productUrl;
+  const displayUrl = isCart
+    ? `${demoStore}/cart/44890876149838:1`
+    : `${demoStore}/products/gift-card`;
 
   return (
     <div className="landing-root">
       {/* Header */}
       <header className="site-header">
         <div className="container nav-row">
-          <a className="brand-mark" aria-label="QR Studio home" href="/">
+          <a className="brand-mark" aria-label="QR Code App home" href="/">
             <svg
               className="brand-mark__icon"
-              width="20"
-              height="20"
+              width="22"
+              height="22"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -60,20 +92,20 @@ export default function App() {
               <path d="M17 20h4v-3" />
               <path d="M21 14v.01" />
             </svg>
-            <span>QR Studio</span>
+            <span>QR Code App</span>
           </a>
           <nav className="nav-links" aria-label="Primary">
             <a className="nav-link" href="#destinations">
-              Destinations
+              Destinasi Scan
             </a>
-            <a className="nav-link" href="#stickers">
-              Stickers
+            <a className="nav-link" href="#features">
+              Fitur Utama
             </a>
             <a className="nav-link" href="#faq">
-              Questions
+              Tanya Jawab
             </a>
             <a className="btn btn--secondary btn--compact" href="#shop-connect">
-              Store login
+              Masuk Toko
             </a>
           </nav>
         </div>
@@ -85,17 +117,18 @@ export default function App() {
         <section className="hero" id="shop-connect">
           <div className="container hero-grid">
             <div className="hero__copy">
-              <h1>Scannable QR labels tied to Shopify checkout.</h1>
+              <h1>QR Code Cerdas Terintegrasi Checkout Shopify.</h1>
               <p className="lead">
-                Generate product or cart QR codes, discount tags, and printable
-                shop stickers.
+                Buat label QR code untuk halaman produk atau langsung ke keranjang
+                checkout. Tersimpan aman di Shopify Metaobjects dan bisa di-scan
+                kapan saja tanpa perlu server lokal.
               </p>
 
               {showForm && (
                 <Form method="post" className="connect-form">
                   <div className="field-group">
                     <label className="field-label" htmlFor="shop-domain">
-                      Shopify store domain
+                      Domain Toko Shopify
                     </label>
                     <div className="field-row">
                       <input
@@ -103,12 +136,12 @@ export default function App() {
                         className="field-input"
                         type="text"
                         name="shop"
-                        placeholder="my-store.myshopify.com"
+                        placeholder="contoh-toko.myshopify.com"
                         autoComplete="url"
                         required
                       />
                       <button type="submit" className="btn btn--primary">
-                        Open in Shopify
+                        Buka di Shopify
                       </button>
                     </div>
                   </div>
@@ -121,8 +154,8 @@ export default function App() {
                     </p>
                   ) : (
                     <p className="field-help">
-                      Enter your myshopify.com domain to open QR Studio in
-                      Shopify Admin.
+                      Masukkan domain myshopify.com untuk mengelola QR code di
+                      Shopify Admin toko Anda.
                     </p>
                   )}
                 </Form>
@@ -132,11 +165,11 @@ export default function App() {
             {/* Sticker Tray Preview */}
             <div className="sticker-tray">
               <div className="sticker-tray__header">
-                <span className="sticker-tray__title">Sample sticker output</span>
+                <span className="sticker-tray__title">Live Preview (Bisa Di-Scan)</span>
                 <div
                   className="mode-pills"
                   role="tablist"
-                  aria-label="Preview destination mode"
+                  aria-label="Pilih mode tujuan scan"
                 >
                   <button
                     type="button"
@@ -145,7 +178,7 @@ export default function App() {
                     className={`mode-pill ${isCart ? "is-active" : ""}`}
                     onClick={() => setActiveMode("cart")}
                   >
-                    Cart checkout
+                    Direct Cart
                   </button>
                   <button
                     type="button"
@@ -154,7 +187,7 @@ export default function App() {
                     className={`mode-pill ${!isCart ? "is-active" : ""}`}
                     onClick={() => setActiveMode("product")}
                   >
-                    Product page
+                    Halaman Produk
                   </button>
                 </div>
               </div>
@@ -162,26 +195,20 @@ export default function App() {
               <div className="sticker-sheet">
                 <img
                   className="sticker-qr-img"
-                  src={isCart ? cartQrSrc : productQrSrc}
+                  src={currentQr}
                   width="244"
                   height="244"
-                  alt={`Sample QR sticker for ${isCart ? "Merino Travel Pack Checkout" : "Merino Travel Pack Product Page"}`}
+                  alt={`QR Code fungsional untuk ${isCart ? "Direct Cart Checkout" : "Halaman Produk"}`}
                 />
                 <div className="sticker-meta">
-                  <div className="sticker-name">Merino Travel Pack</div>
-                  <div className="sticker-route">
-                    {isCart
-                      ? "example-shop.myshopify.com/cart/4492018812:1?discount=PACK15"
-                      : "example-shop.myshopify.com/products/merino-travel-pack"}
-                  </div>
+                  <div className="sticker-name">Gift Card — Official Store</div>
+                  <div className="sticker-route">{displayUrl}</div>
                   <div className="sticker-stub">
                     <span className="mono">
-                      {isCart
-                        ? "merino-pack-checkout"
-                        : "merino-pack-product"}
+                      {isCart ? "gift-card-cart-quick" : "gift-card-detail"}
                     </span>
                     <span className="seal-stamp seal-stamp--tilted">
-                      {isCart ? "Direct Cart" : "Storefront"}
+                      {isCart ? "Auto-Cart" : "Product View"}
                     </span>
                   </div>
                 </div>
@@ -189,12 +216,21 @@ export default function App() {
 
               <div className="sticker-tray__footer">
                 <span>
-                  Route:{" "}
+                  Tujuan:{" "}
                   <strong>
-                    {isCart ? "Direct cart checkout" : "Product detail page"}
+                    {isCart ? "Langsung ke checkout keranjang" : "Halaman detail produk"}
                   </strong>
                 </span>
-                <span>Exports: PNG, Standalone URL, Print Sheet</span>
+                <span>
+                  <a
+                    href={currentUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ textDecoration: "underline", color: "inherit" }}
+                  >
+                    Uji Buka URL Link &rarr;
+                  </a>
+                </span>
               </div>
             </div>
           </div>
@@ -204,85 +240,79 @@ export default function App() {
         <section className="section-switcher" id="destinations">
           <div className="container">
             <div className="section-head-split">
-              <h2>Two scan routes, one printed code.</h2>
+              <h2>Dua Pilihan Rute Scan untuk Berbagai Kebutuhan.</h2>
               <p className="lead">
-                Choose whether a scanned label opens the storefront product page
-                or jumps straight into cart checkout with pre-filled items.
+                Fleksibilitas penuh bagi merchant: dorong konversi kilat langsung ke
+                checkout, atau arahkan pelanggan membaca deskripsi produk lengkap.
               </p>
             </div>
 
             <div className="switcher-panel">
               <dl className="spec-list">
                 <div className="spec-row">
-                  <dt>Destination mode</dt>
+                  <dt>Mode Scan Aktif</dt>
                   <dd>
                     {isCart
-                      ? "Direct cart checkout"
-                      : "Storefront product page"}
+                      ? "Direct Cart Checkout (Varian terpilih langsung masuk keranjang)"
+                      : "Storefront Product Page (Halaman detail produk & media)"}
                   </dd>
                 </div>
                 <div className="spec-row">
-                  <dt>Resolved path</dt>
-                  <dd className="mono">
-                    {isCart
-                      ? "your-shop.myshopify.com/cart/44890876149838:1"
-                      : "your-shop.myshopify.com/products/gift-card"}
-                  </dd>
+                  <dt>Target URL</dt>
+                  <dd className="mono">{displayUrl}</dd>
                 </div>
                 <div className="spec-row">
-                  <dt>Storage definition</dt>
-                  <dd className="mono">$app:qr_code</dd>
+                  <dt>Format Penyimpanan</dt>
+                  <dd className="mono">Shopify Metaobjects ($app:qr_code)</dd>
                 </div>
                 <div className="spec-row">
-                  <dt>Scan tracking</dt>
-                  <dd>Atomic scan counter via Shopify Metaobjects</dd>
+                  <dt>Pelacakan Metrik</dt>
+                  <dd>Penambahan counter scan otomatis setiap kali kode dipindai</dd>
                 </div>
               </dl>
               <p>
                 {isCart
-                  ? "Routes shoppers straight to checkout with your variant pre-loaded in the cart."
-                  : "Brings mobile shoppers directly to your product story, variant selectors, and reviews."}
+                  ? "Sangat cocok untuk stiker kemasan fisik, flyer promo, atau display toko offline agar pelanggan langsung bisa bayar tanpa mencari produk secara manual."
+                  : "Cocok untuk brosur dan label display agar pengunjung melihat ulasan, panduan ukuran, dan varian warna lengkap di toko online."}
               </p>
             </div>
           </div>
         </section>
 
-        {/* Section Dark Band Stickers */}
-        <section className="band--ink" id="stickers">
+        {/* Section Features (Dark Band) */}
+        <section className="band--ink" id="features">
           <div className="container">
             <div className="band-head">
-              <h2>Print labels one by one or by sheet.</h2>
+              <h2>Dirancang Khusus untuk Ekosistem Shopify.</h2>
               <p className="lead">
-                Every QR code stays synced with your Shopify catalog and exports
-                without external layout tools.
+                Semua kode QR terhubung langsung dengan katalog Shopify Anda,
+                dikelola dari Shopify Admin, dan siap pakai tanpa software grafis tambahan.
               </p>
             </div>
             <div className="exports-grid">
               <div className="export-item">
-                <h3>Shareable public QR card</h3>
+                <h3>Penyimpanan Native Metaobjects</h3>
                 <p className="export-item__desc">
-                  Clean public link for high-res PNG downloads, single labels,
-                  and mobile testing.
+                  Data judul, produk, varian, dan jumlah scan tersimpan langsung
+                  di database Metaobjects toko Anda ($app:qr_code) tanpa ketergantungan pihak ketiga.
                 </p>
-                <span className="export-item__meta">Route: /qrcodes/:id</span>
+                <span className="export-item__meta">Tipe: $app:qr_code</span>
               </div>
               <div className="export-item">
-                <h3>Native Metaobject storage</h3>
+                <h3>Real-time Scan Tracking</h3>
                 <p className="export-item__desc">
-                  Persisted safely inside your Shopify Admin under standard
-                  metaobjects without vendor lock-in.
+                  Setiap kali kamera ponsel memindai QR code, rute /scan mencatat
+                  metrik kunjungan secara aman sebelum meneruskan pelanggan ke tujuan.
                 </p>
-                <span className="export-item__meta">Type: $app:qr_code</span>
+                <span className="export-item__meta">Rute: /qrcodes/:id/scan</span>
               </div>
               <div className="export-item">
-                <h3>Real-time scan metrics</h3>
+                <h3>Halaman Publik & Download PNG</h3>
                 <p className="export-item__desc">
-                  Every scan increments its counter via Shopify API before
-                  redirecting immediately.
+                  Setiap QR code memiliki halaman publik tersendiri untuk preview,
+                  tes scan, dan download gambar beresolusi tinggi untuk dicetak.
                 </p>
-                <span className="export-item__meta">
-                  Route: /qrcodes/:id/scan
-                </span>
+                <span className="export-item__meta">Rute: /qrcodes/:id</span>
               </div>
             </div>
           </div>
@@ -291,35 +321,36 @@ export default function App() {
         {/* Section FAQ */}
         <section className="section-faq" id="faq">
           <div className="container faq-layout">
-            <h2>Common questions.</h2>
+            <h2>Pertanyaan yang Sering Diajukan.</h2>
             <div className="faq-list">
               <div className="faq-row">
-                <h3>Where are codes saved?</h3>
+                <h3>Di mana data QR code saya disimpan?</h3>
                 <p>
-                  Inside your Shopify store as app-owned metaobjects (
-                  <code>$app:qr_code</code>), owned directly by your store.
+                  Data disimpan secara aman di dalam toko Shopify Anda sendiri
+                  menggunakan fitur resmi Shopify Metaobjects (<code>$app:qr_code</code>),
+                  sehingga data tetap menjadi milik toko Anda.
                 </p>
               </div>
               <div className="faq-row">
-                <h3>Does it work without running a local server?</h3>
+                <h3>Apakah aplikasi ini bisa diakses tanpa menjalankan server lokal di PC?</h3>
                 <p>
-                  Yes! Deployed serverlessly to Vercel, your QR codes and scan
-                  redirects run 24/7 independently.
+                  Ya, aplikasi telah dideploy secara *serverless* ke cloud (Vercel)
+                  dengan database PostgreSQL (Supabase), sehingga bisa diakses 24 jam nonstop dari mana saja.
                 </p>
               </div>
               <div className="faq-row">
-                <h3>How are scans counted?</h3>
+                <h3>Bagaimana scan counter dihitung?</h3>
                 <p>
-                  Each scan visits <code>/scan</code>, increments the scan
-                  counter in the metaobject, and redirects to the target
-                  destination.
+                  Kamera ponsel membuka rute <code>/scan</code> aplikasi, lalu sistem
+                  akan menambahkan angka scan pada metaobject terkait secara atomik
+                  dan seketika mengalihkan pengguna ke halaman produk/keranjang.
                 </p>
               </div>
               <div className="faq-row">
-                <h3>What if products change?</h3>
+                <h3>Apa yang terjadi jika nama atau harga produk berubah?</h3>
                 <p>
-                  QR codes link directly to Shopify Product and Variant
-                  references, updating automatically as product handles evolve.
+                  Karena QR code mereferensikan resource produk Shopify secara dinamis,
+                  tujuan scan akan selalu mengikuti link dan varian terbaru dari produk tersebut.
                 </p>
               </div>
             </div>
@@ -330,14 +361,13 @@ export default function App() {
         <section className="close-band">
           <div className="container close-band__row">
             <div className="close-band__copy">
-              <h2>Open inside Shopify Admin.</h2>
+              <h2>Siap Menghubungkan Toko Shopify Anda?</h2>
               <p className="lead">
-                Connect your store to start generating scannable product & cart
-                stickers.
+                Mulai buat QR code untuk produk fisik dan promosi toko Anda sekarang.
               </p>
             </div>
             <a href="#shop-connect" className="btn btn--primary">
-              Connect store
+              Hubungkan Toko
             </a>
           </div>
         </section>
@@ -348,7 +378,7 @@ export default function App() {
         <div className="container">
           <div className="footer-row">
             <div>
-              <a className="brand-mark" aria-label="QR Studio home" href="/">
+              <a className="brand-mark" aria-label="QR Code App home" href="/">
                 <svg
                   className="brand-mark__icon"
                   width="20"
@@ -368,22 +398,24 @@ export default function App() {
                   <path d="M17 20h4v-3" />
                   <path d="M21 14v.01" />
                 </svg>
-                <span>QR Studio</span>
+                <span>QR Code App</span>
               </a>
-              <p className="footer-note">Shopify embedded QR generator.</p>
+              <p className="footer-note">
+                Shopify embedded QR Code application &bull; Powered by Shopify Metaobjects.
+              </p>
             </div>
             <nav className="footer-links" aria-label="Footer">
               <a className="nav-link" href="#destinations">
-                Destinations
+                Destinasi Scan
               </a>
-              <a className="nav-link" href="#stickers">
-                Stickers
+              <a className="nav-link" href="#features">
+                Fitur Utama
               </a>
               <a className="nav-link" href="#faq">
-                Questions
+                Tanya Jawab
               </a>
               <a className="nav-link" href="#shop-connect">
-                Store login
+                Masuk Toko
               </a>
             </nav>
           </div>
