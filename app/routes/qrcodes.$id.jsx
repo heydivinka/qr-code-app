@@ -1,6 +1,7 @@
 import { useLoaderData } from "react-router";
 import invariant from "tiny-invariant";
 
+import prisma from "../db.server";
 import { unauthenticated } from "../shopify.server";
 import { getQRCode } from "../models/QRCode.server";
 
@@ -8,7 +9,13 @@ export const loader = async ({ request, params }) => {
   invariant(params.id, "Could not find QR code destination");
 
   const url = new URL(request.url);
-  const shop = url.searchParams.get("shop");
+  let shop = url.searchParams.get("shop");
+  if (!shop) {
+    const session = await prisma.session.findFirst({
+      select: { shop: true },
+    });
+    shop = session?.shop;
+  }
   invariant(shop, "Missing shop parameter");
 
   const { admin } = await unauthenticated.admin(shop);

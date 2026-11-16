@@ -5,11 +5,13 @@ import { getQRCodes } from "../models/QRCode.server";
 
 export const loader = async ({ request }) => {
   const { admin, session } = await authenticate.admin(request);
-  const qrCodes = await getQRCodes(admin.graphql, session.shop);
-
-  return {
-    qrCodes,
-  };
+  try {
+    const qrCodes = await getQRCodes(admin.graphql, session.shop);
+    return { qrCodes };
+  } catch (error) {
+    console.error("Failed to load QR codes:", error);
+    return { qrCodes: [] };
+  }
 };
 
 function truncate(str, { length = 25 } = {}) {

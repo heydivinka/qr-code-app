@@ -236,7 +236,13 @@ export async function getQRCodes(graphql, shop) {
 }
 
 export function getQRCodeImage(id, shop) {
-  const appUrl = process.env.SHOPIFY_APP_URL || "http://localhost:3000";
+  const appUrl =
+    process.env.SHOPIFY_APP_URL ||
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : "https://qr-code-app-flax.vercel.app");
   const url = new URL(`/qrcodes/${id}/scan`, appUrl);
   url.searchParams.set("shop", shop);
   return qrcode.toDataURL(url.href);
