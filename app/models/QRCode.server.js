@@ -173,34 +173,94 @@ function formatQRCode(metaobject, shop) {
   };
 }
 
-export async function getQRCode(handle, graphql, shop) {
-  const response = await graphql(
-    `#graphql
-      ${QR_CODE_FIELDS_FRAGMENT}
-      query GetQRCode($handle: MetaobjectHandleInput!) {
-        metaobjectByHandle(handle: $handle) {
-          ...QRCodeFields
+function resolveAppUrl() {
+  if (process.env.SHOPIFY_APP_URL) {
+    return process.env.SHOPIFY_APP_URL.replace(/\/+$/, "");
+  }
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  return "https://qr-code-app-flax.vercel.app";
+}
+
+export function getQRCodeImage(id, shop, baseUrl) {
+  const appUrl = baseUrl || resolveAppUrl();
+  const url = new URL(`/qrcodes/${id}/scan`, appUrl);
+  if (shop) {
+    url.searchParams.set("shop", shop);
+  }
+  return qrcode.toDataURL(url.href, {
+    width: 400,
+    margin: 2,
+    color: {
+      dark: "#0b0f19",
+      light: "#ffffff",
+    },
+  });
+}
+
+export function getDestinationUrl(qrCode, shop) {
+  if (!shop) return "/";
+
+  if (qrCode.destination === "cart" || qrCode.destination === "checkout") {
+    const match = /gid:\/\/shopify\/ProductVariant\/([0-9]+)/.exec(
+      qrCode.productVariantId || "",
+    );
+    const variantId = qrCode.productVariantLegacyId || match?.[1] || "";
+    if (variantId) {
+      return `https://${shop}/cart/${variantId}:1`;
+    }
+  }
+
+  if (qrCode.productHandle) {
+    return `https://${shop}/products/${qrCode.productHandle}`;
+  }
+
+  return `https://${shop}`;
+}
+
+export async function getQRCode(idOrHandle, graphql, shop, baseUrl) {
+  const isGid = String(idOrHandle).startsWith("gid://");
+  const query = isGid
+    ? `#graphql
+        ${QR_CODE_FIELDS_FRAGMENT}
+        query GetQRCodeById($id: ID!) {
+          metaobject(id: $id) {
+            ...QRCodeFields
+          }
         }
-      }
-    `,
-    {
-      variables: {
+      `
+    : `#graphql
+        ${QR_CODE_FIELDS_FRAGMENT}
+        query GetQRCodeByHandle($handle: MetaobjectHandleInput!) {
+          metaobjectByHandle(handle: $handle) {
+            ...QRCodeFields
+          }
+        }
+      `;
+
+  const variables = isGid
+    ? { id: idOrHandle }
+    : {
         handle: {
           type: METAOBJECT_TYPE,
-          handle,
+          handle: idOrHandle,
         },
-      },
-    },
-  );
+      };
+
+  const response = await graphql(query, { variables });
 
   const { data } = await response.json();
-  const metaobject = data?.metaobjectByHandle;
+  const metaobject = isGid ? data?.metaobject : data?.metaobjectByHandle;
   if (!metaobject) {
     return null;
   }
 
   const formatted = formatQRCode(metaobject, shop);
-  const image = shop ? await getQRCodeImage(formatted.handle, shop) : "";
+  const image = shop ? await getQRCodeImage(formatted.handle, shop, baseUrl) : "";
 
   return {
     ...formatted,
@@ -233,26 +293,6 @@ export async function getQRCodes(graphql, shop) {
   const nodes = data?.metaobjects?.nodes ?? [];
 
   return nodes.map((node) => formatQRCode(node, shop));
-}
-
-export function getQRCodeImage(id, shop) {
-  const appUrl = process.env.SHOPIFY_APP_URL || "http://localhost:3000";
-  const url = new URL(`/qrcodes/${id}/scan`, appUrl);
-  url.searchParams.set("shop", shop);
-  return qrcode.toDataURL(url.href);
-}
-
-export function getDestinationUrl(qrCode, shop) {
-  if (qrCode.destination === "product") {
-    return `https://${shop}/products/${qrCode.productHandle}`;
-  }
-
-  const match = /gid:\/\/shopify\/ProductVariant\/([0-9]+)/.exec(
-    qrCode.productVariantId || "",
-  );
-  const variantId = qrCode.productVariantLegacyId || match?.[1] || "";
-
-  return `https://${shop}/cart/${variantId}:1`;
 }
 
 export async function saveQRCode(handle, data, graphql) {
@@ -325,38 +365,43 @@ export async function deleteQRCode(id, graphql) {
 export async function incrementQRCodeScans(id, currentScans, graphql) {
   const nextScans = Number(currentScans || 0) + 1;
 
-  const response = await graphql(
-    `#graphql
-      mutation IncrementQRCodeScans(
-        $id: ID!
-        $metaobject: MetaobjectUpdateInput!
-      ) {
-        metaobjectUpdate(id: $id, metaobject: $metaobject) {
-          metaobject {
-            id
-            field(key: "scans") {
-              jsonValue
+  try {
+    const response = await graphql(
+      `#graphql
+        mutation IncrementQRCodeScans(
+          $id: ID!
+          $metaobject: MetaobjectUpdateInput!
+        ) {
+          metaobjectUpdate(id: $id, metaobject: $metaobject) {
+            metaobject {
+              id
+              field(key: "scans") {
+                jsonValue
+              }
+            }
+            userErrors {
+              field
+              message
             }
           }
-          userErrors {
-            field
-            message
-          }
         }
-      }
-    `,
-    {
-      variables: {
-        id,
-        metaobject: {
-          fields: [{ key: "scans", value: String(nextScans) }],
+      `,
+      {
+        variables: {
+          id,
+          metaobject: {
+            fields: [{ key: "scans", value: String(nextScans) }],
+          },
         },
       },
-    },
-  );
+    );
 
-  const json = await response.json();
-  return json.data?.metaobjectUpdate;
+    const json = await response.json();
+    return json.data?.metaobjectUpdate;
+  } catch (err) {
+    console.error("Failed to increment QR code scans:", err);
+    return null;
+  }
 }
 
 export function validateQRCode(data) {

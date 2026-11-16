@@ -127,48 +127,48 @@ function DemoQRCodeSvg() {
       xmlns="http://www.w3.org/2000/svg"
     >
       {/* Top Left Finder */}
-      <rect x="5" y="5" width="28" height="28" rx="4" fill="#008060" />
-      <rect x="9" y="9" width="20" height="20" rx="2" fill="white" />
-      <rect x="13" y="13" width="12" height="12" rx="1.5" fill="#008060" />
+      <rect x="5" y="5" width="28" height="28" rx="5" fill="#7c3aed" />
+      <rect x="9" y="9" width="20" height="20" rx="3" fill="#080b11" />
+      <rect x="13" y="13" width="12" height="12" rx="2" fill="#ec4899" />
 
       {/* Top Right Finder */}
-      <rect x="67" y="5" width="28" height="28" rx="4" fill="#008060" />
-      <rect x="71" y="9" width="20" height="20" rx="2" fill="white" />
-      <rect x="75" y="13" width="12" height="12" rx="1.5" fill="#008060" />
+      <rect x="67" y="5" width="28" height="28" rx="5" fill="#7c3aed" />
+      <rect x="71" y="9" width="20" height="20" rx="3" fill="#080b11" />
+      <rect x="75" y="13" width="12" height="12" rx="2" fill="#ec4899" />
 
       {/* Bottom Left Finder */}
-      <rect x="5" y="67" width="28" height="28" rx="4" fill="#008060" />
-      <rect x="9" y="71" width="20" height="20" rx="2" fill="white" />
-      <rect x="13" y="75" width="12" height="12" rx="1.5" fill="#008060" />
+      <rect x="5" y="67" width="28" height="28" rx="5" fill="#7c3aed" />
+      <rect x="9" y="71" width="20" height="20" rx="3" fill="#080b11" />
+      <rect x="13" y="75" width="12" height="12" rx="2" fill="#ec4899" />
 
       {/* QR Timing and Data Matrix Elements */}
-      <rect x="38" y="10" width="5" height="5" rx="1" />
-      <rect x="48" y="10" width="5" height="5" rx="1" />
-      <rect x="58" y="10" width="5" height="5" rx="1" />
+      <rect x="38" y="10" width="5" height="5" rx="1" fill="#c084fc" />
+      <rect x="48" y="10" width="5" height="5" rx="1" fill="#ec4899" />
+      <rect x="58" y="10" width="5" height="5" rx="1" fill="#c084fc" />
 
-      <rect x="10" y="38" width="5" height="5" rx="1" />
-      <rect x="10" y="48" width="5" height="5" rx="1" />
-      <rect x="10" y="58" width="5" height="5" rx="1" />
+      <rect x="10" y="38" width="5" height="5" rx="1" fill="#c084fc" />
+      <rect x="10" y="48" width="5" height="5" rx="1" fill="#ec4899" />
+      <rect x="10" y="58" width="5" height="5" rx="1" fill="#c084fc" />
 
-      <rect x="38" y="38" width="10" height="10" rx="2" fill="#008060" />
-      <rect x="53" y="38" width="6" height="6" rx="1" />
-      <rect x="64" y="38" width="8" height="5" rx="1" />
-      <rect x="77" y="38" width="12" height="5" rx="1" />
+      <rect x="38" y="38" width="10" height="10" rx="2" fill="#7c3aed" />
+      <rect x="53" y="38" width="6" height="6" rx="1" fill="#f43f5e" />
+      <rect x="64" y="38" width="8" height="5" rx="1" fill="#06b6d4" />
+      <rect x="77" y="38" width="12" height="5" rx="1" fill="#c084fc" />
 
-      <rect x="38" y="53" width="7" height="7" rx="1.5" />
-      <rect x="50" y="50" width="10" height="8" rx="1" fill="#008060" />
-      <rect x="65" y="48" width="6" height="12" rx="1" />
-      <rect x="76" y="48" width="16" height="6" rx="1" />
+      <rect x="38" y="53" width="7" height="7" rx="1.5" fill="#ec4899" />
+      <rect x="50" y="50" width="10" height="8" rx="1" fill="#7c3aed" />
+      <rect x="65" y="48" width="6" height="12" rx="1" fill="#f43f5e" />
+      <rect x="76" y="48" width="16" height="6" rx="1" fill="#c084fc" />
 
-      <rect x="38" y="66" width="6" height="12" rx="1" />
-      <rect x="49" y="64" width="12" height="6" rx="1" />
-      <rect x="66" y="65" width="9" height="9" rx="1.5" fill="#008060" />
-      <rect x="80" y="60" width="12" height="8" rx="1" />
+      <rect x="38" y="66" width="6" height="12" rx="1" fill="#06b6d4" />
+      <rect x="49" y="64" width="12" height="6" rx="1" fill="#ec4899" />
+      <rect x="66" y="65" width="9" height="9" rx="1.5" fill="#7c3aed" />
+      <rect x="80" y="60" width="12" height="8" rx="1" fill="#f43f5e" />
 
-      <rect x="38" y="83" width="14" height="6" rx="1" />
-      <rect x="57" y="76" width="6" height="15" rx="1" />
-      <rect x="68" y="79" width="12" height="6" rx="1" />
-      <rect x="85" y="74" width="8" height="15" rx="1" />
+      <rect x="38" y="83" width="14" height="6" rx="1" fill="#c084fc" />
+      <rect x="57" y="76" width="6" height="15" rx="1" fill="#7c3aed" />
+      <rect x="68" y="79" width="12" height="6" rx="1" fill="#ec4899" />
+      <rect x="85" y="74" width="8" height="15" rx="1" fill="#06b6d4" />
     </svg>
   );
 }
@@ -333,7 +333,7 @@ export default function App() {
 
           <div className="features-grid">
             <div className="feature-card">
-              <div className="feature-icon icon-emerald">
+              <div className="feature-icon icon-pink">
                 <CartLightningIcon />
               </div>
               <h3 className="feature-title">Direct-to-Cart Links</h3>
@@ -345,7 +345,7 @@ export default function App() {
             </div>
 
             <div className="feature-card">
-              <div className="feature-icon icon-blue">
+              <div className="feature-icon icon-purple">
                 <ChartAnalyticsIcon />
               </div>
               <h3 className="feature-title">Live Scan Analytics</h3>
@@ -357,7 +357,7 @@ export default function App() {
             </div>
 
             <div className="feature-card">
-              <div className="feature-icon icon-purple">
+              <div className="feature-icon icon-cyan">
                 <ShieldNativeIcon />
               </div>
               <h3 className="feature-title">Native Metaobjects</h3>
