@@ -1,6 +1,4 @@
 import { redirect, Form, useActionData, useLoaderData } from "react-router";
-import { login } from "../../shopify.server";
-import { loginErrorMessage } from "./error.server";
 import "./landing.css";
 
 export const loader = async ({ request }) => {
@@ -10,13 +8,26 @@ export const loader = async ({ request }) => {
     return redirect(`/app?${url.searchParams.toString()}`);
   }
 
-  return { showForm: Boolean(login) };
+  return { showForm: true };
 };
 
 export const action = async ({ request }) => {
-  const errors = loginErrorMessage(await login(request));
+  const formData = await request.formData();
+  const rawShop = formData.get("shop");
+  let shop = String(rawShop || "").trim().toLowerCase();
 
-  return { errors };
+  shop = shop.replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+  if (!shop) {
+    return { errors: { shop: "Please enter your store domain" } };
+  }
+
+  const storeHandle = shop.replace(".myshopify.com", "");
+
+  // Directly redirect to Shopify Admin embedded app URL
+  // This avoids the broken direct "oauth/install" link on development apps
+  return redirect(
+    `https://admin.shopify.com/store/${storeHandle}/apps/qr-code-app`,
+  );
 };
 
 function BrandIcon() {
@@ -257,7 +268,7 @@ export default function App() {
                       />
                     </div>
                     <button className="auth-submit-btn" type="submit">
-                      <span>Log in</span>
+                      <span>Launch in Admin</span>
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                         <line x1="5" y1="12" x2="19" y2="12" />
                         <polyline points="12 5 19 12 12 19" />
@@ -281,7 +292,7 @@ export default function App() {
                         <line x1="12" y1="16" x2="12" y2="12" />
                         <line x1="12" y1="8" x2="12.01" y2="8" />
                       </svg>
-                      <span>Enter your development or production myshopify.com domain</span>
+                      <span>Opens the app directly inside Shopify Admin (e.g. qr-code-dev-divinka)</span>
                     </div>
                   )}
                 </Form>

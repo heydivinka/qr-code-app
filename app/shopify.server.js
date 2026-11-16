@@ -7,12 +7,25 @@ import {
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
 
+function resolveAppUrl() {
+  if (process.env.SHOPIFY_APP_URL) {
+    return process.env.SHOPIFY_APP_URL.replace(/\/+$/, "");
+  }
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  return "https://qr-code-app-flax.vercel.app";
+}
+
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
   apiSecretKey: process.env.SHOPIFY_API_SECRET || "",
   apiVersion: ApiVersion.July26,
   scopes: process.env.SCOPES?.split(","),
-  appUrl: process.env.SHOPIFY_APP_URL || "",
+  appUrl: resolveAppUrl(),
   authPathPrefix: "/auth",
   sessionStorage: new PrismaSessionStorage(prisma),
   distribution: AppDistribution.AppStore,
